@@ -184,7 +184,7 @@
 
     .dash-header {
       display: grid;
-      grid-template-columns: 320px 1fr 240px; /* 좌측 로고, 가운데 GNB 게이지, 우측 종료버튼 균형 배치 */
+      grid-template-columns: 320px 1fr 240px;
       align-items: center;
       padding: 16px 36px; background: var(--surface);
       border-bottom: 1px solid var(--border);
@@ -201,7 +201,6 @@
     .brand-name { font-size: 20px; font-weight: 800; }
     .brand-sub  { font-size: 14px; color: var(--muted); margin-top: 1px; }
 
-    /* GNB 전용 누적 막대 게이지 바 디자인 고도화 */
     .gnb-gauge-container {
       display: flex; flex-direction: column; gap: 6px; padding: 0 40px; width: 100%;
     }
@@ -213,7 +212,7 @@
       height: 100%; transition: width .6s cubic-bezier(.16,1,.3,1);
     }
     .gnb-fill.u { background: var(--green); }
-    .gnb-fill.c { background: #f59e0b; } /* 명확한 가시성을 위해 amber 색상 지정 */
+    .gnb-fill.c { background: #f59e0b; }
     .gnb-fill.l { background: var(--red); }
 
     .gnb-legend {
@@ -328,6 +327,7 @@
     .sig-prompt { font-size: 20px; color: var(--muted); margin-bottom: 6px; }
     .sig-note   { font-size: 16px; color: var(--muted); margin-bottom: 40px; }
 
+    /* 참여자 버튼 컨테이너 (기본 세로형) */
     .sig-opts { display: flex; flex-direction: column; gap: 16px; margin-bottom: 40px; }
 
     .sig-btn {
@@ -424,14 +424,67 @@
     }
     .fb-warn.show { display: block; }
 
+    /* ─── 모바일 미디어 쿼리 화면 최적화 개편 ─── */
     @media (max-width: 1200px) {
       .dash-header { grid-template-columns: 1fr; gap: 12px; justify-items: center; text-align: center; }
       .gnb-gauge-container { padding: 0; }
       .dash-body { grid-template-columns: 1fr; }
     }
+
     @media (max-width: 600px) {
       .role-grid { grid-template-columns: 1fr; }
       .gnb-legend { gap: 10px; flex-wrap: wrap; }
+
+      /* [모바일 참여자 최적화]: 세로 배치를 가로 3분할 배치로 전면 변경 */
+      .sig-body { padding: 24px 16px 10px; }
+      .sig-title { font-size: 28px; margin-bottom: 6px; }
+      .sig-prompt { font-size: 16px; }
+      .sig-note { font-size: 14px; margin-bottom: 20px; }
+      
+      /* 버튼 컨테이너를 가로 레이아웃(Grid)으로 전환 */
+      .sig-opts {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        margin-bottom: 24px;
+      }
+
+      /* 버튼 크기 및 패딩 축소, 둥근 모서리 최적화 */
+      .sig-btn {
+        padding: 14px 8px;
+        border-radius: 14px;
+        text-align: center; /* 가로 배열 시 중앙 정렬이 훨씬 깔끔함 */
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 80px;
+      }
+      .sig-btn-top { margin-bottom: 0; justify-content: center; width: 100%; }
+      
+      /* 요구사항 반영: 버튼 글씨 크기 30% 축소 (24px -> 16.8px로 축소 타겟팅) */
+      .sig-btn-name {
+        font-size: 16px; 
+        font-weight: 800;
+        gap: 4px;
+        flex-direction: column; /* 아이콘과 글자를 세로로 매칭해 가로 공간 확보 */
+      }
+      
+      /* 모바일 가로 배열에서는 하단 긴 설명을 숨겨서 질문칸 공간 극대화 */
+      .sig-btn-desc { display: none; }
+      
+      /* 선택됨 체크 태그를 미니멀한 상단 고정 점(Dot) 형태로 스마트화 */
+      .sel-tag {
+        position: absolute; top: 6px; right: 6px;
+        font-size: 0; padding: 4px; width: 8px; height: 8px;
+      }
+      
+      /* 질문 입력 칸 가시성 강화 및 스케일핏 조정 */
+      .q-label { font-size: 16px; margin-bottom: 10px; }
+      input.inp, textarea.inp { font-size: 16px; padding: 12px 16px; }
+      textarea.inp { min-height: 100px; }
+      .sig-footer { padding: 0 16px 20px; padding-top: 16px; }
+      .btn { padding: 14px; font-size: 16px; }
     }
   </style>
 </head>
@@ -512,7 +565,6 @@
       </div>
     </div>
     
-    <!-- [GNB 핵심 개선]: 대시보드 대신 상단 네비게이션 바에 막대 그래프 게이지 통합 및 실시간 수치 표기 -->
     <div class="gnb-gauge-container">
       <div class="gnb-track-bar">
         <div id="bar-u" class="gnb-fill u" style="width: 0%;"></div>
@@ -534,7 +586,6 @@
   </div>
 
   <div class="dash-body">
-    <!-- [좌측 영역]: 대형 실시간 익명 질문 피드 (가독성 극대화 구조 유지) -->
     <div class="dash-left">
       <div class="q-card">
         <div class="sc-title">익명 질문 피드</div>
@@ -545,7 +596,6 @@
       </div>
     </div>
 
-    <!-- [우측 영역]: 강의실 정보 및 QR 참여 위젯 코드 기입 단락 -->
     <div class="dash-right">
       <div class="side-card">
         <div class="sc-title">강의실 참여 정보</div>
@@ -582,24 +632,25 @@
     <div class="sig-prompt" id="lbl-sig-prompt">지금 어떤 생각이 드시나요?</div>
     <div class="sig-note"  id="lbl-sig-note">완전 익명이에요 😊</div>
 
+    <!-- 모바일 환경에서 가로 3분할 배열로 다이나믹 매칭되는 구조 단락 -->
     <div class="sig-opts">
       <div class="sig-btn u" onclick="sendSignal('u',this)">
         <div class="sig-btn-top">
-          <div class="sig-btn-name" id="lbl-btn-u-name">👍 좋아요</div>
+          <div class="sig-btn-name" id="lbl-btn-u-name"><span>👍</span> <span>좋아요</span></div>
           <div class="sel-tag" id="lbl-sel-u">✓ 선택됨</div>
         </div>
         <div class="sig-btn-desc" id="lbl-btn-u-desc">아주 유익하고 진행 상태가 맘에 들어요</div>
       </div>
       <div class="sig-btn c" onclick="sendSignal('c',this)">
         <div class="sig-btn-top">
-          <div class="sig-btn-name" id="lbl-btn-c-name">😐 보통이에요</div>
+          <div class="sig-btn-name" id="lbl-btn-c-name"><span>😐</span> <span>보통이에요</span></div>
           <div class="sel-tag" id="lbl-sel-c">✓ 선택됨</div>
         </div>
         <div class="sig-btn-desc" id="lbl-btn-c-desc">무난하고 적절하게 흘러가고 있어요</div>
       </div>
       <div class="sig-btn l" onclick="sendSignal('l',this)">
         <div class="sig-btn-top">
-          <div class="sig-btn-name" id="lbl-btn-l-name">💡 다른 거 생각해볼게요</div>
+          <div class="sig-btn-name" id="lbl-btn-l-name"><span>💡</span> <span>다른 거</span></div>
           <div class="sel-tag" id="lbl-sel-l">✓ 선택됨</div>
         </div>
         <div class="sig-btn-desc" id="lbl-btn-l-desc">방향을 조금 바꾸거나 새로운 논의가 필요해요</div>
@@ -664,11 +715,11 @@ const TRANSLATIONS = {
     leaveRoom: "← 나가기",
     sigPrompt: "지금 어떤 생각이 드시나요?",
     sigNote: "완전 익명이에요 😊",
-    btnUName: "👍 좋아요",
+    btnUName: "<span>👍</span> <span>좋아요</span>",
     btnUDesc: "아주 유익하고 진행 상태가 맘에 들어요",
-    btnCName: "😐 보통이에요",
+    btnCName: "<span>😐</span> <span>보통이에요</span>",
     btnCDesc: "무난하고 적절하게 흘러가고 있어요",
-    btnLName: "💡 다른 거 생각해볼게요",
+    btnLName: "<span>💡</span> <span>다른 거</span>",
     btnLDesc: "방향을 조금 바꾸거나 새로운 논의가 필요해요",
     selTag: "✓ 선택됨",
     qLabel: "익명 의견/질문 보내기 <span class=\"opt-tag\">(선택)</span>",
@@ -684,11 +735,11 @@ const TRANSLATIONS = {
     leaveRoom: "← Leave",
     sigPrompt: "What are your thoughts right now?",
     sigNote: "It's completely anonymous 😊",
-    btnUName: "👍 Good",
+    btnUName: "<span>👍</span> <span>Good</span>",
     btnUDesc: "Very informative and I like the progress",
-    btnCName: "😐 So-so",
+    btnCName: "<span>😐</span> <span>So-so</span>",
     btnCDesc: "It's going smooth and appropriately",
-    btnLName: "💡 Let's think differently",
+    btnLName: "<span>💡</span> <span>Change</span>",
     btnLDesc: "Need to twist direction or have a new debate",
     selTag: "✓ Selected",
     qLabel: "Send Anonymous Feedback <span class=\"opt-tag\">(Optional)</span>",
@@ -700,15 +751,15 @@ const TRANSLATIONS = {
     toastQReq: "Please enter your text."
   },
   zh: {
-    anonBadge: "🙋 完全匿名参与中",
+    anonBadge: "🙋 完全匿名参与중",
     leaveRoom: "← 退出",
     sigPrompt: "你现在有什么想法？",
     sigNote: "完全匿名哦 😊",
-    btnUName: "👍 赞",
+    btnUName: "<span>👍</span> <span>赞</span>",
     btnUDesc: "非常有益，我很满意当前的进度",
-    btnCName: "😐 一般",
+    btnCName: "<span>😐</span> <span>一般</span>",
     btnCDesc: "进行得很顺利，也挺合适",
-    btnLName: "💡 换个思路",
+    btnLName: "<span>💡</span> <span>换思路</span>",
     btnLDesc: "需要稍微调整方向或需要新的讨论",
     selTag: "✓ 已选择",
     qLabel: "发送匿名建议 <span class=\"opt-tag\">(可选)</span>",
@@ -717,7 +768,7 @@ const TRANSLATIONS = {
     sigNote2: "提问将以匿名方式传达，教授의 화면에는 내용만 표시됩니다.",
     toastSent: "应答已发送！",
     toastQSent: "提问已发送！😊",
-    toastQReq: "请输入提问内容。"
+    toastQReq: "请输入提问内容."
   }
 };
 
@@ -799,7 +850,7 @@ function toast(msg) {
 }
 
 /* ================================================================
-   개설자 기능 (GNB 가로 통합 막대 갱신 시스템)
+   개설자 기능
 ================================================================ */
 function createRoom() {
   const prof  = document.getElementById('in-prof').value.trim();
@@ -879,16 +930,13 @@ function updateDash(responses, questions) {
   document.getElementById('d-total').textContent = total;
   if (!useFirebase) document.getElementById('d-stu').textContent = total;
 
-  // 백분율 수치 계산
   const pct = n => total ? Math.round(n/total*100) : 0;
   const pu = pct(u), pc = pct(c), pl = pct(l);
 
-  // GNB 가로 누적 그래프 막대 너비 업데이트
   document.getElementById('bar-u').style.width = pu + '%';
   document.getElementById('bar-c').style.width = pc + '%';
   document.getElementById('bar-l').style.width = pl + '%';
 
-  // 하단 텍스트 레이블 수치 및 투표자 숫자 동시에 업데이트 
   document.getElementById('p-u').textContent = `${pu}% (${u}명)`;
   document.getElementById('p-c').textContent = `${pc}% (${c}명)`;
   document.getElementById('p-l').textContent = `${pl}% (${l}명)`;
